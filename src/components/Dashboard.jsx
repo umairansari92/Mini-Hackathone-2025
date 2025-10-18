@@ -4,7 +4,7 @@ import { auth, db } from "../firebase";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generatePitch } from "../services/GemiServices";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -12,35 +12,20 @@ function Dashboard() {
   const [generated, setGenerated] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Logout function
   const handleLogout = async () => {
     await signOut(auth);
     navigate("/");
   };
 
-  // Initialize Gemini
-  const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-
+  // Generate pitch with Gemini
   const handleGenerate = async () => {
     if (!idea.trim()) return alert("Please enter your startup idea first!");
     setLoading(true);
+    setGenerated(null);
 
     try {
-      const prompt = `
-      You are an AI startup assistant. Based on this idea: "${idea}",
-      generate the following in short form JSON:
-      {
-        "name": "Startup name",
-        "tagline": "Tagline",
-        "pitch": "2–3 line pitch",
-        "audience": "Target audience"
-      }`;
-
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-      const data = JSON.parse(text.replace(/```json|```/g, "").trim());
-
+      const data = await generatePitch(idea);
       setGenerated(data);
 
       // Save to Firestore
@@ -52,7 +37,7 @@ function Dashboard() {
       });
     } catch (error) {
       console.error(error);
-      alert("Error generating pitch. Please try again.");
+      alert("Error generating pitch. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -99,19 +84,53 @@ function Dashboard() {
             <div className="mt-8 space-y-4 animate-fadeIn">
               <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
                 <h3 className="text-lg font-semibold text-indigo-400 mb-1">Startup Name</h3>
-                <p>{generated.name}</p>
+                <p>{generated.startupName}</p>
               </div>
               <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
                 <h3 className="text-lg font-semibold text-indigo-400 mb-1">Tagline</h3>
                 <p>{generated.tagline}</p>
               </div>
               <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
-                <h3 className="text-lg font-semibold text-indigo-400 mb-1">Pitch</h3>
-                <p>{generated.pitch}</p>
+                <h3 className="text-lg font-semibold text-indigo-400 mb-1">Elevator Pitch</h3>
+                <p>{generated.elevatorPitch}</p>
               </div>
               <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
                 <h3 className="text-lg font-semibold text-indigo-400 mb-1">Target Audience</h3>
-                <p>{generated.audience}</p>
+                <p>{generated.targetAudience}</p>
+              </div>
+
+              <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+                <h3 className="text-lg font-semibold text-indigo-400 mb-2">Hero Copy</h3>
+                <p>{generated.heroCopy}</p>
+              </div>
+
+              {/* Color Palette */}
+              <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+                <h3 className="text-lg font-semibold text-indigo-400 mb-3">Color Palette</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {generated.colorPalette?.map((color, index) => (
+                    <div
+                      key={index}
+                      className="rounded-lg p-3 border border-gray-600 text-sm"
+                      style={{ backgroundColor: color.hex }}
+                    >
+                      <p className="font-semibold">{color.name}</p>
+                      <p className="text-xs">{color.hex}</p>
+                      <p className="text-xs italic">{color.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Logo Concepts */}
+              <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+                <h3 className="text-lg font-semibold text-indigo-400 mb-2">Logo Concepts</h3>
+                {generated.logoConcepts?.map((logo, index) => (
+                  <div key={index} className="mb-3">
+                    <p className="font-semibold">{logo.idea}</p>
+                    <p className="text-sm text-gray-300">{logo.visualDescription}</p>
+                  </div>
+                ))}
               </div>
             </div>
           )}
