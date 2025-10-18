@@ -25,38 +25,35 @@ function Dashboard() {
       const data = await generatePitch(idea);
       setGenerated(data);
 
-      await addDoc(collection(db, "pitches"), {
+      // ✅ Save as a single structured object
+      const pitchObject = {
         uid: auth.currentUser.uid,
+        userName: auth.currentUser.displayName || "Anonymous User",
         idea,
-        ...data,
+        pitchData: data, // store whole JSON object under "pitchData"
         createdAt: serverTimestamp(),
-      });
+      };
+
+      await addDoc(collection(db, "pitches"), pitchObject);
+      alert("Pitch saved successfully!");
     } catch (error) {
-      alert("Error generating pitch. Please try again.");
+      console.error("Error saving pitch:", error);
+      alert("Error generating or saving pitch. Please try again.");
     } finally {
       setLoading(false);
     }
-
-
-
-    
-//  Save Pitch to Firestore per user
-    const data = await generatePitch(idea);
-    setGenerated(data);
-
-  
-    await addDoc(collection(db, "pitches"), {
-      uid: auth.currentUser.uid,
-      userName: auth.currentUser.displayName || "Anonymous User",
-      idea,
-      ...data,
-      createdAt: serverTimestamp(),
-    });
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white">
       <header className="flex justify-between items-center px-8 py-4 border-b border-gray-700 bg-gray-900 bg-opacity-70 backdrop-blur-sm">
+        <button
+          onClick={() => navigate("/profile")}
+          className="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+        >
+          Profile
+        </button>
+
         <h1 className="text-2xl font-bold text-indigo-400">
           PitchCraft Dashboard
         </h1>
@@ -74,10 +71,10 @@ function Dashboard() {
           <span className="text-indigo-400">AI Startup Pitch</span>
         </h2>
 
-        <h2 className="text-xl text-gray-300 mb-6 text-center">
+        <h2 className="text-lg text-gray-300 text-center mt-2">
           Welcome,{" "}
           <span className="text-indigo-400 font-semibold">
-            {auth.currentUser?.displayName || "Guest"}
+            {auth.currentUser?.displayName || "User"}
           </span>{" "}
           👋
         </h2>

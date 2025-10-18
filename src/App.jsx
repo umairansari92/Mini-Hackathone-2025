@@ -1,20 +1,37 @@
 // src/App.jsx
-import React from "react";
-import {  Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
+import Signup from "./components/Signup";
 import Dashboard from "./components/Dashboard";
-import Signup from "./components/signup";
+import Profile from "./components/Profile";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
-    <div className="App">
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
 
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Routes>
-    </div>
+      {/* Protected Routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
   );
 }
 
