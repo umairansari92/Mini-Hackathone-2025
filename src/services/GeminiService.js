@@ -17,6 +17,19 @@ Output in pure JSON only, following this structure:
   "startupName": "string",
   "tagline": "string",
   "elevatorPitch": "string",
+  "problems": [
+    {
+      "title": "string",
+      "description": "string"
+    }
+  ],
+  "solutions": [
+    {
+      "title": "string",
+      "description": "string",
+      "benefits": ["string"]
+    }
+  ],
   "targetAudience": "string",
   "heroCopy": "string",
   "colorPalette": [

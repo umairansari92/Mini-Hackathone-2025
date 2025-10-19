@@ -3,7 +3,12 @@ import { auth, db } from "../firebase";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { generatePitch } from "../services/GemiServices";
+import { generatePitch } from "../services/GeminiService";
+
+// Add this helper function at the top of your file
+const safeEncode = (obj) => {
+  return encodeURIComponent(JSON.stringify(obj));
+};
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -125,6 +130,62 @@ function Dashboard() {
                 </h3>
                 <p>{generated.targetAudience}</p>
               </div>
+
+              <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+                <h3 className="text-lg font-semibold text-indigo-400 mb-3">
+                  Problems
+                </h3>
+                <div className="space-y-2">
+                  {generated.problems?.map((problem, index) => (
+                    <div key={index} className="p-3 bg-gray-900 rounded-lg">
+                      <h4 className="font-medium text-indigo-300">
+                        {problem.title}
+                      </h4>
+                      <p className="text-gray-300 text-sm mt-1">
+                        {problem.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+                <h3 className="text-lg font-semibold text-indigo-400 mb-3">
+                  Solutions
+                </h3>
+                <div className="space-y-2">
+                  {generated.solutions?.map((solution, index) => (
+                    <div key={index} className="p-3 bg-gray-900 rounded-lg">
+                      <h4 className="font-medium text-indigo-300">
+                        {solution.title}
+                      </h4>
+                      <p className="text-gray-300 text-sm mt-1">
+                        {solution.description}
+                      </p>
+                      <div className="mt-2">
+                        <p className="text-xs text-indigo-400 mb-1">Benefits:</p>
+                        <ul className="list-disc list-inside text-sm text-gray-300">
+                          {solution.benefits.map((benefit, i) => (
+                            <li key={i}>{benefit}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {generated && (
+                <button
+                  onClick={() => {
+                    const encodedData = encodeURIComponent(JSON.stringify(generated));
+                    navigate(`/preview/${encodedData}`);
+                  }}
+                  className="w-full py-3 mt-6 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-semibold shadow-lg hover:brightness-105 transition"
+                >
+                  Preview Landing Page
+                </button>
+              )}
             </div>
           )}
         </div>
